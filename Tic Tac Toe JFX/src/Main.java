@@ -214,7 +214,7 @@ public class Main extends Application implements EventHandler<ActionEvent>{
         //Check diagonal 1
         checker = 0;
         String str1 = buttons[0].getText();
-        for(int i=DIM+1; i<buttons.length; i+=(DIM+1)){
+        for(int i=0; i<buttons.length; i+=(DIM+1)){
             if(!(buttons[i].getText().equals("-"))){
             	if(buttons[i].getText().equals(str1)){
             		wincache[checker] = i;
@@ -222,14 +222,14 @@ public class Main extends Application implements EventHandler<ActionEvent>{
             	}
             }
         }
-        if(checker >= DIM-1){
+        if(checker == DIM){
     		return new Pair<Boolean, String>(true, str1);
 		}
         
         //Check diagonal 2
         checker = 0;
         String str2 = buttons[DIM-1].getText();
-        for(int i=(DIM-1)*2; i<buttons.length-(DIM-1); i+=(DIM-1)){
+        for(int i=(DIM-1); i<buttons.length-(DIM-1); i+=(DIM-1)){
             if(!(buttons[i].getText().equals("-"))){
             	if(buttons[i].getText().equals(str2)){
             		wincache[checker] = i;
@@ -237,7 +237,7 @@ public class Main extends Application implements EventHandler<ActionEvent>{
             	}
             }
         }
-        if(checker >= DIM-1){
+        if(checker == DIM){
 			return new Pair<Boolean, String>(true, str2);
 		}
         
