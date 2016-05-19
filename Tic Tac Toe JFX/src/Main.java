@@ -60,7 +60,7 @@ public class Main extends Application implements EventHandler<ActionEvent>{
 		for(int i=0; i<buttons.length; ++i){
 			this.buttons[i] = new Button("-");
 			this.buttons[i].setPrefSize(600/DIM, 600/DIM);
-			this.buttons[i].setStyle("-fx-font-size:" + 120/DIM + "; -fx-base: #FFFFFF;");
+			this.buttons[i].setStyle("-fx-background-radius: 0em; -fx-font-size:" + 120/DIM + "; -fx-base: #FFFFFF;");
 			this.buttons[i].setOnAction(this);
 		}
 	}
@@ -130,7 +130,7 @@ public class Main extends Application implements EventHandler<ActionEvent>{
 	
 	public void disableButton(Button b){
 		b.setDisable(true);
-		b.setStyle("-fx-opacity: 1.0; -fx-font-size:" + 120/DIM + "; -fx-base: #FFFFFF;");
+		b.setStyle("-fx-background-radius: 0em; -fx-opacity: 1.0; -fx-font-size:" + 120/DIM + "; -fx-base: #FFFFFF;");
 	}
 	
 	public void printWin(String s){
