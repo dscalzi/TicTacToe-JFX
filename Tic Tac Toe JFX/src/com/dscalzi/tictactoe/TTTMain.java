@@ -1,24 +1,33 @@
 package com.dscalzi.tictactoe;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 
 public class TTTMain extends Application{
 	
-	private static final int DIM = 3;
+	private int DIM = 10;
 	
 	private volatile boolean order;
 	private TTTButton[] buttons;
@@ -67,26 +76,53 @@ public class TTTMain extends Application{
 	
 	public void goFirst(){
 		
-		Alert alert = new Alert(AlertType.CONFIRMATION);
-		alert.setTitle("Tic Tac Toe");
-		alert.setHeaderText("Would you like to go first?");
-		alert.setContentText("Select whether you would like to go first or second. The user that goes first will be X, while the other will be O.");
+		List<Integer> choices = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 15));
 		
-		ButtonType btnTypeFirst = new ButtonType("First");
-		ButtonType btnTypeSecond = new ButtonType("Second");
+		ComboBox<Integer> sel = new ComboBox<>(FXCollections.observableArrayList(choices));
+		sel.setValue(3);
+		
+		
+		GridPane top = new GridPane();
+		top.add(new Label("Game Dimension: "), 0, 0);
+		top.add(sel, 1, 0);
+		top.setVgap(10);
+		top.setHgap(10);
+		top.setAlignment(Pos.CENTER);
+		
+		VBox mainLayout = new VBox(10);
+		Label text = new Label("Select whether you would like to go first or second. The user that goes \nfirst will be X, while the other will be O.");
+		text.setAlignment(Pos.CENTER);
+		mainLayout.getChildren().addAll(top, text);
+		
+		
+		Dialog<Integer> dia = new Dialog<>();
+		dia.getDialogPane().getStyleClass().addAll("alert", "information", "dialog-pane");
+		dia.setTitle("Tic Tac Toe");
+		dia.setHeaderText("Select your game options.");
+		
+		dia.getDialogPane().setContent(mainLayout);
+		
+		ButtonType btnTypeFirst = new ButtonType("Go First");
+		ButtonType btnTypeSecond = new ButtonType("Go Second");
 		ButtonType btnTypeCancel = new ButtonType("Quit Game", ButtonData.CANCEL_CLOSE);
 		
-		alert.getButtonTypes().setAll(btnTypeFirst, btnTypeSecond, btnTypeCancel);
+		dia.getDialogPane().getButtonTypes().setAll(btnTypeFirst, btnTypeSecond, btnTypeCancel);
+
 		
-		Optional<ButtonType> result = alert.showAndWait();
-		result.ifPresent(e -> {
-			if(e == btnTypeFirst)
-				this.order = true;
-			else if(e == btnTypeSecond)
-				this.order = false;
+		dia.setResultConverter(button -> {
+			if(button == btnTypeFirst)
+				order = true;
+			else if(button == btnTypeSecond)
+				order = false;
 			else
 				System.exit(0);
+			
+			return new Integer(sel.getValue());
 		});
+		
+		Optional<Integer> result = dia.showAndWait();
+		
+		result.ifPresent(e -> DIM = e);
 		
 	}
 
