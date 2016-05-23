@@ -1,17 +1,17 @@
-.game-button {
+.tttbutton {
 	-fx-background-radius: 0em;
 	-fx-base: #FFFFFF;
 }
 
-.game-button:disabled {
+.tttbutton:disabled {
 	-fx-opacity: 1.0;
 }
 
-.game-button-win {
+.tttbutton-win {
 	-fx-base: #DDFFDB;
 }
 
-.game-button-lose {
+.tttbutton-lose {
 	-fx-base: #FFDBDD;
 }
 

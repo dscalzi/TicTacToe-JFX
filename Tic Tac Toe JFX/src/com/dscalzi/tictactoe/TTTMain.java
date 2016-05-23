@@ -1,29 +1,29 @@
+package com.dscalzi.tictactoe;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 
-public class Main extends Application implements EventHandler<ActionEvent>{
+public class TTTMain extends Application{
 	
 	private static final int DIM = 3;
 	
 	private volatile boolean order;
-	private Button[] buttons;
+	private TTTButton[] buttons;
 	
-	int[] wincache = new int[DIM];
+	private List<Integer> wincache;
 	
 	public static void main(String[] args){
 		launch(args);
@@ -41,11 +41,10 @@ public class Main extends Application implements EventHandler<ActionEvent>{
 		layout.setVgap(30/DIM);
 		layout.setHgap(30/DIM);
 		layout.setPadding(new Insets(0,0,0,0));
-		for(int i=0; i<buttons.length; ++i){
-			layout.add(buttons[i], i/DIM, i%DIM);
-		}
+		for(int i=0; i<buttons.length; ++i)
+			layout.add(buttons[i], i%DIM, i/DIM);
 		Scene scene = new Scene(layout, 600, 600);
-		scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+		scene.getStylesheets().add(getClass().getResource("styles/style.css").toExternalForm());
 		
 		primaryStage.setScene(scene);
 		primaryStage.show();
@@ -56,13 +55,13 @@ public class Main extends Application implements EventHandler<ActionEvent>{
 	}
 	
 	private void initialize(){
-		this.buttons = new Button[DIM*DIM];
+		this.wincache = new ArrayList<Integer>();
+		this.buttons = new TTTButton[DIM*DIM];
 		for(int i=0; i<buttons.length; ++i){
-			this.buttons[i] = new Button("-");
+			this.buttons[i] = new TTTButton(this);
 			this.buttons[i].setPrefSize(600/DIM, 600/DIM);
-			this.buttons[i].getStyleClass().add("game-button");
+			this.buttons[i].getStyleClass().add("tttbutton");
 			this.buttons[i].setStyle(this.buttons[i].getStyle() + "-fx-font-size:" + 120/DIM + ";");
-			this.buttons[i].setOnAction(this);
 		}
 	}
 	
@@ -91,54 +90,43 @@ public class Main extends Application implements EventHandler<ActionEvent>{
 		
 	}
 
-	@Override
-	public void handle(ActionEvent e) {
-		Button b = (Button)e.getSource();
-		b.setText(order ? "X" : "O");
-		b.setDisable(true);
-		
-		Pair<Boolean, String> control = isOver();
-		
-		if(!control.getKey())
-			makeRandomMove();
-		else
-			printWin(control.getValue());
-			
+	public boolean getOrder(){
+		return this.order;
 	}
 	
 	public void makeRandomMove(){
 		boolean canContinue = false;
-		for(Button b : buttons){
-			if(!(b.isDisabled())){
+		for(TTTButton b : buttons)
+			if(b.getState() == TTTButtonState.UNASSIGNED){
 				canContinue = true;
 				break;
 			}
-		}
+		
 		while(canContinue){
 			Random rn = new Random();
 			int rand = rn.nextInt(buttons.length);
-			if(!(buttons[rand].isDisabled())){
-				buttons[rand].setText(!order ? "X" : "O");
-				buttons[rand].setDisable(true);
+			if(buttons[rand].getState() == TTTButtonState.UNASSIGNED){
+				buttons[rand].setState(!order ? TTTButtonState.X : TTTButtonState.O);
 				canContinue = false;
 			}
 		}
 		
-		Pair<Boolean, String> control = isOver();
+		Pair<Boolean, TTTButtonState> control = isOver();
 		if(control.getKey())
 			printWin(control.getValue());
 	}
 	
-	public void printWin(String s){
+	public void printWin(TTTButtonState s){
 		
-		for(Button b : buttons)
+		//Game is over, turn off all buttons.
+		for(TTTButton b : buttons)
 			b.setDisable(true);
 		
 		//Player Wins
-		if(s.equals(order ? "X" : "O")){
+		if(s == (order ? TTTButtonState.X : TTTButtonState.O)){
 			
 			for(int i : wincache)
-				this.buttons[i].getStyleClass().add("game-button-win");
+				this.buttons[i].getStyleClass().add("tttbutton-win");
 			
 			Alert alert = new Alert(AlertType.INFORMATION);
 			alert.setTitle("Tic Tac Toe");
@@ -149,10 +137,10 @@ public class Main extends Application implements EventHandler<ActionEvent>{
 		}
 		
 		//Computer Wins
-		if(s.equals(order ? "O" : "X")){
+		if(s == (order ? TTTButtonState.O : TTTButtonState.X)){
 			
 			for(int i : wincache)
-				this.buttons[i].getStyleClass().add("game-button-lose");
+				this.buttons[i].getStyleClass().add("tttbutton-lose");
 			
 			Alert alert = new Alert(AlertType.ERROR);
 			alert.setTitle("Tic Tac Toe");
@@ -162,7 +150,7 @@ public class Main extends Application implements EventHandler<ActionEvent>{
 			alert.showAndWait();
 		}
 		
-		if(s.equals("FULL")){
+		if(s == TTTButtonState.UNASSIGNED){
 			Alert alert = new Alert(AlertType.WARNING);
 			alert.setTitle("Tic Tac Toe");
 			alert.setHeaderText("No one wins!");
@@ -173,82 +161,63 @@ public class Main extends Application implements EventHandler<ActionEvent>{
 		
 	}
 	
-	public Pair<Boolean, String> isOver(){
-        int checker;
-        //Check Columns
-        for(int i=0; i<buttons.length-(DIM-1); i+=DIM){
-        	checker = 0;
-        	if(!(buttons[i].getText().equals("-"))){
-        		String str = buttons[i].getText();
-        		for(int z=0; z<DIM; ++z){
-        			wincache[checker] = i+z;
-        			if(buttons[i+z].getText().equals(str))
-        				++checker;
-        		}
-        		if(checker == DIM){
-        			return new Pair<Boolean, String>(true, str);
-        		}
-        	}
-        }
-        
+	
+	public Pair<Boolean, TTTButtonState> isOver(){
         //Check Rows
-        for(int i=0; i<DIM; ++i){
-        	checker = 0;
-        	if(!(buttons[i].getText().equals("-"))){
-        		String str = buttons[i].getText();
-        		for(int z=i; z<buttons.length; z+=DIM){
-        			wincache[checker] = z;
-        			if(buttons[z].getText().equals(str))
-        				++checker;
-        		}
-        		if(checker == DIM){
-        			return new Pair<Boolean, String>(true, str);
-        		}
+        for(int i=0; i<buttons.length; i+=DIM){
+        	int checker = 0;
+        	for(int j=i; j<i+DIM; ++j){
+        		wincache.add(j);
+        		checker += buttons[j].getState().getVal();
         	}
+        	if(checker == DIM) return new Pair<Boolean, TTTButtonState>(true, TTTButtonState.X);
+        	if(checker == (-1*DIM)) return new Pair<Boolean, TTTButtonState>(true, TTTButtonState.O);
+        	wincache.clear();
         }
         
-        //Check diagonal 1
-        checker = 0;
-        String str1 = buttons[0].getText();
+        //Check Columns
+        for(int i=0; i<DIM; ++i){
+        	int checker = 0;
+        	for(int j=i; j<buttons.length; j+=DIM){
+        		wincache.add(j);
+        		checker += buttons[j].getState().getVal();
+        	}
+        	if(checker == DIM) return new Pair<Boolean, TTTButtonState>(true, TTTButtonState.X);
+        	if(checker == (-1*DIM)) return new Pair<Boolean, TTTButtonState>(true, TTTButtonState.O);
+        	wincache.clear();
+        }
+        
+        //Check Diagonal 1
+        int diag1Check = 0;
         for(int i=0; i<buttons.length; i+=(DIM+1)){
-            if(!(buttons[i].getText().equals("-"))){
-            	if(buttons[i].getText().equals(str1)){
-            		wincache[checker] = i;
-            		++checker;
-            	}
-            }
+        	wincache.add(i);
+        	diag1Check += buttons[i].getState().getVal();
         }
-        if(checker == DIM){
-    		return new Pair<Boolean, String>(true, str1);
-		}
+        if(diag1Check == DIM) return new Pair<Boolean, TTTButtonState>(true, TTTButtonState.X);
+    	if(diag1Check == (-1*DIM)) return new Pair<Boolean, TTTButtonState>(true, TTTButtonState.O);
+    	wincache.clear();
         
-        //Check diagonal 2
-        checker = 0;
-        String str2 = buttons[DIM-1].getText();
-        for(int i=(DIM-1); i<buttons.length-(DIM-1); i+=(DIM-1)){
-            if(!(buttons[i].getText().equals("-"))){
-            	if(buttons[i].getText().equals(str2)){
-            		wincache[checker] = i;
-            		++checker;
-            	}
-            }
-        }
-        if(checker == DIM){
-			return new Pair<Boolean, String>(true, str2);
-		}
+    	//Check Diagonal 2
+    	int diag2Check = 0;
+    	for(int i=(DIM-1); i<buttons.length-(DIM-1); i+=(DIM-1)){
+    		wincache.add(i);
+        	diag2Check += buttons[i].getState().getVal();
+    	}
+    	if(diag2Check == DIM) return new Pair<Boolean, TTTButtonState>(true, TTTButtonState.X);
+    	if(diag2Check == (-1*DIM)) return new Pair<Boolean, TTTButtonState>(true, TTTButtonState.O);
+    	wincache.clear();
         
         //Check to see if the board is full
-        checker = 0;
-        for(Button b : buttons){
-            if(!(b.isDisabled()))
+        int boardCheck = 0;
+        for(TTTButton b : buttons){
+            if(b.getState() == TTTButtonState.UNASSIGNED)
                     break;
-            ++checker;
+            ++boardCheck;
         }
-	
-        if(checker == buttons.length)
-        	return new Pair<Boolean, String>(true, "FULL");
+        if(boardCheck == buttons.length) return new Pair<Boolean, TTTButtonState>(true, TTTButtonState.UNASSIGNED);
         
-        return new Pair<Boolean, String>(false, null);
+        //If no other return statement is fired, the game is not over.
+        return new Pair<Boolean, TTTButtonState>(false, null);
     }
 	
 }
