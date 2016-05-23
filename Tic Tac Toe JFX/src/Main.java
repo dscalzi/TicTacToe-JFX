@@ -36,16 +36,16 @@ public class Main extends Application implements EventHandler<ActionEvent>{
 		
 		/* Primary Scene*/
 		GridPane layout = new GridPane();
-		layout.setStyle("-fx-background-color: black");
+		layout.setId("gridpane-main");
 		layout.setAlignment(Pos.CENTER);
-		layout.setVgap(10);
-		layout.setHgap(10);
+		layout.setVgap(30/DIM);
+		layout.setHgap(30/DIM);
 		layout.setPadding(new Insets(0,0,0,0));
 		for(int i=0; i<buttons.length; ++i){
 			layout.add(buttons[i], i/DIM, i%DIM);
 		}
-		
 		Scene scene = new Scene(layout, 600, 600);
+		scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
 		
 		primaryStage.setScene(scene);
 		primaryStage.show();
@@ -60,7 +60,8 @@ public class Main extends Application implements EventHandler<ActionEvent>{
 		for(int i=0; i<buttons.length; ++i){
 			this.buttons[i] = new Button("-");
 			this.buttons[i].setPrefSize(600/DIM, 600/DIM);
-			this.buttons[i].setStyle("-fx-background-radius: 0em; -fx-font-size:" + 120/DIM + "; -fx-base: #FFFFFF;");
+			this.buttons[i].getStyleClass().add("game-button");
+			this.buttons[i].setStyle(this.buttons[i].getStyle() + "-fx-font-size:" + 120/DIM + ";");
 			this.buttons[i].setOnAction(this);
 		}
 	}
@@ -94,7 +95,7 @@ public class Main extends Application implements EventHandler<ActionEvent>{
 	public void handle(ActionEvent e) {
 		Button b = (Button)e.getSource();
 		b.setText(order ? "X" : "O");
-		disableButton(b);
+		b.setDisable(true);
 		
 		Pair<Boolean, String> control = isOver();
 		
@@ -118,7 +119,7 @@ public class Main extends Application implements EventHandler<ActionEvent>{
 			int rand = rn.nextInt(buttons.length);
 			if(!(buttons[rand].isDisabled())){
 				buttons[rand].setText(!order ? "X" : "O");
-				disableButton(buttons[rand]);
+				buttons[rand].setDisable(true);
 				canContinue = false;
 			}
 		}
@@ -128,21 +129,16 @@ public class Main extends Application implements EventHandler<ActionEvent>{
 			printWin(control.getValue());
 	}
 	
-	public void disableButton(Button b){
-		b.setDisable(true);
-		b.setStyle("-fx-background-radius: 0em; -fx-opacity: 1.0; -fx-font-size:" + 120/DIM + "; -fx-base: #FFFFFF;");
-	}
-	
 	public void printWin(String s){
 		
 		for(Button b : buttons)
-			disableButton(b);
+			b.setDisable(true);
 		
 		//Player Wins
-		if((order && s.equals("X")) || (!order && s.equals("O"))){
+		if(s.equals(order ? "X" : "O")){
 			
 			for(int i : wincache)
-				this.buttons[i].setStyle(this.buttons[i].getStyle() + "-fx-base: #DDFFDB;");
+				this.buttons[i].getStyleClass().add("game-button-win");
 			
 			Alert alert = new Alert(AlertType.INFORMATION);
 			alert.setTitle("Tic Tac Toe");
@@ -153,10 +149,10 @@ public class Main extends Application implements EventHandler<ActionEvent>{
 		}
 		
 		//Computer Wins
-		if((order && s.equals("O")) || (!order && s.equals("X"))){
+		if(s.equals(order ? "O" : "X")){
 			
 			for(int i : wincache)
-				this.buttons[i].setStyle(this.buttons[i].getStyle() + "-fx-base: #FFDBDD;");
+				this.buttons[i].getStyleClass().add("game-button-lose");
 			
 			Alert alert = new Alert(AlertType.ERROR);
 			alert.setTitle("Tic Tac Toe");
