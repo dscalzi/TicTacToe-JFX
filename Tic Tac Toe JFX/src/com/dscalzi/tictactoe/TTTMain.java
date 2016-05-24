@@ -7,16 +7,13 @@ import java.util.Random;
 
 import javafx.application.Application;
 import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -80,6 +77,7 @@ public class TTTMain extends Application{
 		
 		ComboBox<Integer> sel = new ComboBox<>(FXCollections.observableArrayList(choices));
 		sel.setValue(3);
+		sel.setVisibleRowCount(3);
 		
 		
 		GridPane top = new GridPane();
@@ -88,10 +86,12 @@ public class TTTMain extends Application{
 		top.setVgap(10);
 		top.setHgap(10);
 		top.setAlignment(Pos.CENTER);
+		top.setPadding(new Insets(0, 90, 0, 90));
 		
 		VBox mainLayout = new VBox(10);
-		Label text = new Label("Select whether you would like to go first or second. The user that goes \nfirst will be X, while the other will be O.");
+		Label text = new Label("Select whether you would like to go first or second. The user \n        that goes first will be X, while the other will be O.");
 		text.setAlignment(Pos.CENTER);
+		mainLayout.setAlignment(Pos.CENTER);
 		mainLayout.getChildren().addAll(top, text);
 		
 		
